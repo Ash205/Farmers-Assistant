@@ -1,0 +1,171 @@
+<html>
+    <head>
+        <meta charset="UTF-8"><title>Farmers' Assistant</title>
+		<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> 
+        <script src="https://www.gstatic.com/firebasejs/3.5.2/firebase.js"></script>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.js"></script>
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <script src="/js/charts.js"></script>
+        <script src="/js/weather.js"></script>
+    </head>
+    <body style="background-color: #1A2035;">
+        <script>
+			// let sensors;
+            $(document).ready(function(){
+                var a = new Array(6);
+                    for(let j=0;j<6;j++){
+                        a[j]=new Array();
+                    }
+
+	var config = {
+    apiKey: API_KEY,
+    authDomain: AUTH_DOMAIN,
+    databaseURL: DATABASE_URL,
+    projectId: PROJECT_ID,
+    storageBucket: STORAGE_BUCKET,
+    messagingSenderId: SENDER_ID,
+    appId: APPID
+  	};
+                firebase.initializeApp(config);
+                var database = firebase.database();
+                var sensors = database.ref('Data');
+
+				setInterval(function(){sensors.once("value", gotData, errData);}, 1000/30);
+
+                function gotData(data){
+                    var maindata = data.val();
+                    var keys = Object.keys(maindata);
+                    display(maindata, keys);
+                    //console.log('hello');
+                }
+                function display(maindata, keys){
+                    for(let i=0; i<keys.length; i++){
+                        var temp = Object.keys(maindata[keys[i]]);
+
+                        
+						if(temp.length >= 6){
+							for(let ash =6;ash>0;ash--){
+								let trash = temp.length-ash;
+								a[i].push(maindata[keys[i]][temp[trash]]);
+							}
+							
+						}
+						if((a[i].length>6)){
+                            a[i] = a[i].slice(a[i].length - 6);
+                        }
+                           
+                        
+                    }
+					 		chart1(a[0]);
+                            chart2(a[1]);	
+                            chart3(a[2]);
+                            chart4(a[3]);
+                            chart5(a[4]);
+                            chart6(a[5]);
+                            f();
+                }
+                function errData(){
+                    console.log('error');
+                }
+            });
+
+        </script>
+        <style>
+            .border{
+                border-radius: 5px;
+            }
+            .candiv{
+                background-color: #1F283F;
+                color: #838FA8;
+                border-color: black;
+                box-shadow: 5px 5px #838FA8;
+                padding:10px;
+                margin: 0 auto;
+            }
+        </style>
+        <div class="py-5 text-center" style="color: cornsilk;"><h2>Farm - <%= id %></h2></div>
+        <div class="container" style="background-color: #2A2C3F;border-radius: 5px;">
+            <br>
+            <div class="row">
+                <div class="col-3 border candiv" ><b>HEAT INDEX</b><canvas width="100" height="100" id="c1"></canvas></div>
+                <div class="col-3 border candiv" ><b>HUMIDITY</b><canvas width="100" height="100" id="c2"></canvas></div>
+                <div class="col-3 border candiv" ><b>MOISTURE</b><canvas width="100" height="100" id="c3"></canvas></div>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-3 border candiv" ><b>TEMPERATURE (C)</b><canvas width="200" height="200" id="c4"></canvas></div>
+                <div class="col-3 border candiv" ><b>TEMPERATURE (F)</b><canvas width="200" height="200" id="c5"></canvas></div>
+                <div class="col-3 border candiv" ><b>WATER LEVEL</b><canvas width="200" height="200" id="c6"></canvas></div>
+            </div>
+            <br>
+        </div>
+        <div class = "container">
+	
+            <div class="py-5 text-center">
+                <!-- <br/><br>
+                <form class="form-inline"  style="text-align: center;">
+                <button onclick = "f();" class="btn btn-outline-light" type = "button"><i class="fa fa-search"></i></button>
+                </form> -->
+                <br/>
+                
+                
+                
+                
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header"> 
+                      <ul class="nav nav-tabs card-header-tabs pull-right"  id="myTab" role="tablist">
+                        <li class="nav-item">
+                         <a class="nav-link active" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="home" aria-selected="true">Location</a>
+                        </li>
+                       </ul>
+                    </div>
+                    <div class="card-body">
+                     <div class="tab-content" id="myTabContent">
+                     <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="home-tab" style="color:black"></div>
+                    </div>
+                    </div>
+                  </div>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header"> 
+              <ul class="nav nav-tabs card-header-tabs pull-right"  id="myTab" role="tablist">
+                <li class="nav-item">
+                 <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Weather</a>
+                </li>
+               </ul>
+            </div>
+            <div class="card-body">
+             <div class="tab-content" id="myTabContent">
+             <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab" style="color:black"></div>
+            </div>
+            </div>
+          </div>
+          <div class="card mb-4 shadow-sm">
+            <div class="card-header"> 
+              <ul class="nav nav-tabs card-header-tabs pull-right"  id="myTab" role="tablist">
+                <li class="nav-item">
+                 <a class="nav-link active" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="home" aria-selected="true">Temperature</a>
+                </li>
+               </ul>
+            </div>
+            <div class="card-body">
+             <div class="tab-content" id="myTabContent">
+             <div class="tab-pane fade show active" id="contact" role="tabpanel" aria-labelledby="home-tab" style="color:black"></div>
+            </div>
+            </div>
+				</div>	
+        
+        
+            </div>
+            <br>
+            <div>
+                <span style="color: cornsilk;">Check for different location</span>
+                <button><a href="/games/weather">Go</a></button>
+            </div>
+            </div>
+    </body>
+</html>
+
+
+
